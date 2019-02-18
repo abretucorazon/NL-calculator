@@ -38,6 +38,7 @@
 ; Combined map for the conversion of words to numbers
 (def number-dict (conj tens09 teens1019 tees2090 hundreds-up))
 
+;(def t1 " two thousand five hundred twenty one")
 
 ; Convert a list of words into a number using map: number-dict
 (defn to-digits [word-list]
@@ -55,33 +56,29 @@
 )
 
 
-
 (def op-words ["plus" "minus" "multiply" "times" "divide"])
 (def op-fns [+ - * * /])
 
 (def op-map (zipmap op-words op-fns)) ; a mapping of operator-text to corresponding math functions
 (def op-set (set op-words))           ; a set of operator words
-
-
-; Split "words" into [operand operator rest-of-words]
-(defn split-ops [[_ _ words]]
-  (let [[operand rest-of-words] (split-with (complement op-set) words)]
-    [operand (first rest-of-words) (rest rest-of-words)]))
-
+(defn is-operator [w] (op-set w))     ; test is a word denotes an arithmetic operator: "plus", "minus",...
 
 ; Translate "words" into a list of aritmetic operations
-; e.g. ["two" "plus" "three" "minus" "four"] -> [2 + 3 - 4]
+; e.g. ["two" "plus" "three" "minus" "four"] -> '(2 + 3 - 4)
 (defn to-calculations [words]
-  (drop-last
-            (reduce (fn [acc [operand operator _]]
-                      (concat acc [(to-digits operand)] [(op-map operator)]))
-                    []
-                    (take-while (fn [[operand _ _]] (not (empty? operand)))
-                                (iterate split-ops [["zero"] "plus" words])))))
-
+  (let [res (reduce (fn [acc w]
+                      (println acc w)
+                      (if-let [operator (op-map w)] ; found an arithmetic operator: "plus", "minus",etc.
+                          ; convert operand in 'acc' to number and add operator to 'acc'
+                        (let [number (-> acc (first)  (to-digits))]
+                          (conj (rest acc)  number operator []))
+                          ; else 'w' is part of an operand - add 'w' to the last operand in 'acc'
+                        (conj (rest acc) (conj (first acc) w)))) 
+                    '([]) words)]       
+      (-> (conj (rest res) (to-digits (first res))) (reverse))
+  ))
 
 ; Compute the result of the list of arithmetic operations
-;
 ; when op is a number, acc is a partial function to be applied to op to carry out the current arithmetic operation and
 ; return the value of the computation.
 ; Otherwise, op is an arithmetic operator, and acc is an operand, return a partial function to apply to
@@ -90,7 +87,6 @@
   (let [result (reduce (fn [acc op] (if (number? op) (acc op) (partial op acc)))
                        (partial + 0)
                        calculations)]
-
     (if (ratio? result) (double result) result)))
 
 
@@ -98,20 +94,29 @@
 ; Words not needed in the conversion of text to number
 (def unused-words #{"by" "and"})
 
+; Dictionary of all the words recognized by this program
+(def vocabulary (conj  number-dict op-map (zipmap unused-words unused-words)))
+(defn validate [words]
+  "Return a list with typing error(s) or 'words' if there is no error"
+    (let [errors (filter (fn [w] (nil? (vocabulary w))) words)]
+      (if (empty? errors)
+        words
+        (do (println "Typing error(s): " errors) 
+            []))))
 
-; Evaluate a series of arithmetic operations in natural language and return the result as a number
+
 (defn evaluate [text]
-  (as-> text % (s/trim %) (s/split % #" +") (filter (complement unused-words) %)
-        (to-calculations %) (compute %)))
-
+  "Evaluate a series of arithmetic operations in natural language and return the result as a number"
+  (as-> text % (s/trim %) (s/split % #" +") (filter (complement unused-words) %) 
+        (validate %) (to-calculations %) (compute %)))
 
 (def test-data " two thousand five hundred twenty one multiply three hundreds forty three thousands five hundreds thirty three  ")
-(def t1 " two thousand five hundred twenty one")
-(def t2 "three hundreds forty three thousands five hundreds thirty three ")
+
+;(def t1 " two thousand five hundred twenty one")
+(def t2 "three hundreds forty three thousands five hundreds thirty three")
 (evaluate t1)
 (evaluate t2)
 (evaluate test-data)
 ; three hundreds forty three thousands five hundreds thirty three
 ; -> 343533
 (* 343533 2521)
-
