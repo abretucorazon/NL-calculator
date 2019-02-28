@@ -64,7 +64,7 @@
 (defn is-operator [w] (op-set w))     ; test is a word denotes an arithmetic operator: "plus", "minus",...
 
 ; Translate "words" into a list of aritmetic operations
-; e.g. ["two" "plus" "three" "minus" "four"] -> '(2 + 3 - 4)
+; e.g. ["two" "plus" "three" "minus" "four"] -> [2 + 3 - 4]
 (defn to-calculations [words]
   (loop [lst words acc []]
     (let [[num-text rest-words] (split-with (partial (complement op-set)) lst)]
@@ -74,20 +74,6 @@
         (conj acc (to-digits num-text))
         )))
 )
-
-
-(defn OLD-to-calculations [words]
-  (let [res (reduce (fn [acc w]
-(println acc w)
-                      (if-let [operator (op-map w)] ; found an arithmetic operator: "plus", "minus",etc.
-                          ; convert operand in 'acc' to number and add operator to 'acc'
-                        (let [number (-> acc (first)  (to-digits))]
-                          (conj (rest acc)  number operator []))
-                          ; else 'w' is part of an operand - add 'w' to the last operand in 'acc'
-                        (conj (rest acc) (conj (first acc) w)))) 
-                    '([]) words)]       
-      (-> (conj (rest res) (to-digits (first res))) (reverse))
-  ))
 
 
 ; Compute the result of the list of arithmetic operations
