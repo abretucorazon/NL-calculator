@@ -2,15 +2,6 @@
   (:require [clojure.pprint :as pp]
             [clojure.string :as s]))
 
-;
-; Maps for parsing commands and arithmetic operations: + - * /
-;
-(def commands {"compute" identity "equals" identity})
-
-(def decimal-point "point")
-
-; Function names used to define operations between numbers
-(declare times plus times10plus times100plus  next-subtotal)
 
 ; Map of text to single digit numbers: {"zero" [0 :digit] "one" [1 :digit] ...}
 (def numbers ["zero" "one" "two" "three" "four" "five" "six" "seven" "eight" "nine"])
