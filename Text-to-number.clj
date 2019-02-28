@@ -42,7 +42,7 @@
 
 ; Convert a list of words into a number using map: number-dict
 (defn to-digits [word-list]
-  (println word-list (map number-dict word-list))
+(println word-list (map number-dict word-list))
   (->> (map number-dict word-list)
        (reduce  (fn [acc number]
                   (println acc number)
@@ -66,8 +66,19 @@
 ; Translate "words" into a list of aritmetic operations
 ; e.g. ["two" "plus" "three" "minus" "four"] -> '(2 + 3 - 4)
 (defn to-calculations [words]
+  (loop [lst words acc []]
+    (let [[num-text rest-words] (split-with (partial (complement op-set)) lst)]
+(println num-text rest-words acc)
+      (if-not (empty? rest-words)
+        (recur (rest rest-words) (conj acc (to-digits num-text) (op-map (first rest-words)))) 
+        (conj acc (to-digits num-text))
+        )))
+)
+
+
+(defn OLD-to-calculations [words]
   (let [res (reduce (fn [acc w]
-                      (println acc w)
+(println acc w)
                       (if-let [operator (op-map w)] ; found an arithmetic operator: "plus", "minus",etc.
                           ; convert operand in 'acc' to number and add operator to 'acc'
                         (let [number (-> acc (first)  (to-digits))]
@@ -77,6 +88,7 @@
                     '([]) words)]       
       (-> (conj (rest res) (to-digits (first res))) (reverse))
   ))
+
 
 ; Compute the result of the list of arithmetic operations
 ; when op is a number, acc is a partial function to be applied to op to carry out the current arithmetic operation and
