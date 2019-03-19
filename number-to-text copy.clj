@@ -31,17 +31,16 @@
 ; Forward declarations
 (declare num->text+unit three-digit->text two-digit->text n->3digits)
 
-; Convert a positive number between 0 and 999 millions into its textual form˜˜˜˜˜
+; Convert a positive number between 0 and 999 millions into its textual form
 ; usage: (num-text 123) -> "one hundred twenty three"
-;(defn number->text [n]
-;    (s/trim
-;        (let [millions (/ n one-million) 
-;                thousands (/ (- n millions) one-thousand) 
-;                hundreds  (mod n one-thousand)]
-;                (s/str  (num->text+unit    millions  unit-million  three-digit->text)  
-;                        (num->text+unit    thousands unit-thousand three-digit->text)  
-;                        (three-digit->text hundreds)))))
-
+(defn number->text [n]
+    (s/trim
+        (let [millions (/ n one-million) 
+                thousands (/ (- n m˜illions) one-thousand)) 
+                hundreds  (mod n one-thousand)]
+                (s/str  (num->text+unit    millions  unit-million  three-digit->text)  
+                        (num->text+unit    thousands unit-thousand three-digit->text)  
+                        (three-digit->text hundreds))))
 
 (def no-text "")
 (def ordered-units [(num->word unit-million) (num->word unit-thousand) no-text])
@@ -49,7 +48,7 @@
 ; Ranges for validating input
 (def valid-min 0)
 (def valid-max 999999999)
-(def bad-input-msg "Number must be between 0 and 999,999,999)") ;˜˜˜˜˜(s/str "Number must be between " valid-min " and " valid-max))
+(def bad-input-msg (s/str "Number must be between " valid-min " and " valid-max))
 
 (defn n->t [n]
     (assert (and (>= n 0) (<= n valid-max)) bad-input-msg)
