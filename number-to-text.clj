@@ -2,7 +2,7 @@
   (:require [clojure.pprint :as pp]
             [clojure.string :as s]))
 
-; Constants 
+; Constants ˜
 (def unit-million  1000000)
 (def unit-thousand  1000)
 (def unit-hundred   100)
@@ -31,34 +31,23 @@
 ; Forward declarations
 (declare num->text+unit three-digit->text two-digit->text n->3digits)
 
-; Convert a positive number between 0 and 999 millions into its textual form˜˜˜˜˜
-; usage: (num-text 123) -> "one hundred twenty three"
-;(defn number->text [n]
-;    (s/trim
-;        (let [millions (/ n one-million) 
-;                thousands (/ (- n millions) one-thousand) 
-;                hundreds  (mod n one-thousand)]
-;                (s/str  (num->text+unit    millions  unit-million  three-digit->text)  
-;                        (num->text+unit    thousands unit-thousand three-digit->text)  
-;                        (three-digit->text hundreds)))))
-
-
 (def no-text "")
 (def ordered-units [(num->word unit-million) (num->word unit-thousand) no-text])
 
 ; Ranges for validating input
 (def valid-min 0)
 (def valid-max 999999999)
-(def bad-input-msg "Number must be between 0 and 999,999,999)") ;˜˜˜˜˜(s/str "Number must be between " valid-min " and " valid-max))
+(def bad-input-msg (str "Number must be between " valid-min " and " valid-max))
 
 (defn n->t [n]
     (assert (and (>= n 0) (<= n valid-max)) bad-input-msg)
-    (let [lst-3digits (n->3digits n) 
-          vec-units (subvec ordered-units (- (count ordered-units) (count lst-3digits)))]
-          (map #((if (> %1 0) 
-                    (s/str (three-digit->text %1) " " %2 " ") 
-                    no-text)) 
-                lst-3digits vec-units)))
+    (if (= n 0)
+        (num->word n)
+        (let [lst-3digits (n->3digits n) 
+              vec-units   (subvec ordered-units (- (count ordered-units) (count lst-3digits)))
+              vec-text    (map (fn [n u] (if (> n 0) (str (three-digit->text n) u " ")  no-text)) 
+                               lst-3digits vec-units)]
+            (s/trim (apply str vec-text)))))
 
 ; Split a number into a list of 3-digit 
 (defn n->3digits [n]
@@ -67,26 +56,21 @@
             res 
             (recur (quot x 1000) (conj res (mod x 1000))))))
 
-;; Format a positive number into text and combined with its unit in text form
-;; e.g. (num->text+unit 123 1000 three-digit->text) -> one hundred twenty three thousand 
-(defn num->text+unit [num unit n->t]
-    (if (> num 0) 
-        (s/str (n->t num) " " (num->word unit) " ")
-        ""))
-
 
 ;; Convert a 3-digit number (0 to 999) to text
 (defn three-digit->text [num]
-    (let [hundred        (/ num 100) 
-          hundred-text   (num->text+unit hundred unit-hundred num->word)
-                         ;; (if (> hundred 0) (s/str (num->word hundred) " " (num->word 100) " ")  "")]
-        (s/str hundred-text (two-digit->text (mod num 100)))))
+    (let [hundred        (quot num unit-hundred) 
+          tens           (mod num unit-hundred)
+          hundred-text   (if (> hundred 0) (str (num->word hundred) " " (num->word unit-hundred) " ")  no-text)
+          tens-text      (if (> tens 0) (str (two-digit->text tens) " ") no-text)]
+(println hundred hundred-text tens tens-text)
+        (str hundred-text tens-text)))
 
 
 ; Convert a 2-digit number between 0 and 99 to text
 (defn two-digit->text [n]
     (if-let [text (num->word n)] 
         text
-        (let [single (n % 10) 
-              tens   (n - single)]
-            (s/str (num->word tens) " " (num->word single)))))
+        (let [single (mod n 10) 
+              tens   (- n single)]
+            (str (num->word tens) " " (num->word single)))))
