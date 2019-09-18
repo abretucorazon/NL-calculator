@@ -42,7 +42,7 @@
 (defn one-digit?   [n] (and (>= n 0) (<= n 9)))
 (defn two-digit?   [n] (and (>= n 10) (<= n 99)))
 (defn three-digit? [n] (and (>= 100) (<= n 999)))
-(defn four-digit?  [n] (and (>= n 1000) (<= n 9999)))
+;(defn four-digit?  [n] (and (>= n 1000) (<= n 9999)))
 
 (defn n->t [n]
     (assert (and (>= n valid-min) (<= n valid-max)) bad-input-msg)
@@ -61,7 +61,7 @@
 ; Split a number into a list of 3-digit 
 (defn n->3digits [n]
     (loop [x n res '()]
-        (if (= x  0)
+        (if (zero? x)
             res 
             (recur (quot x 1000) (conj res (mod x 1000))))))
 

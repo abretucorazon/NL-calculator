@@ -18,9 +18,23 @@
 (def tees2090 (zipmap tees (range 20 100 10)))
 
 
-; Map of text to hundreds, thousands,  millions
-(def powers ["hundred" "hundreds" "thousand" "thousands" "million" "millions"])
-(def powers-digits [100 100 1000 1000 1000000 1000000])
+; Map of text to hundreds
+(def hundreds ["hundred" "hundreds"])
+(def hundreds-digits [100 100])
+(def hundreds-map (zipmap hundreds hundreds-digits))
+
+; Map of text thousands, millions
+(def thousands ["thousand" "thousands" "million" "millions"])
+(def thousands-digits [1000 1000 1000000 1000000])
+(def thousand-map (zipmap thousands thousands-digits))
+(def thousands-set (set thousands-digits))
+(defn thousands? [n] (thousands-set n)) ; test if n is a thousand or a million .. 
+(defn not-thousands? [n] (not (thousands? n))) ; test if n is not a thousand nor a million ...
+
+; Combine the above 2 vectors of hundreds and thousands into 
+; a map of text to hundred, thousand, million
+(def powers (concat hundreds thousands))
+(def powers-digits (concat hundreds-digits thousands-digits))
 (def hundreds-up (zipmap powers powers-digits))
 
 (def powers-set (set powers-digits))
@@ -30,6 +44,37 @@
 (def number-dict (conj tens09 teens1019 tees2090 hundreds-up))
 
 ;(def t1 " two thousand five hundred twenty one")
+
+; Convert a list of numbers into its corresponding number between 0 and 999
+; e.g. "three hundreds forty five" => [3 100 40 5] => 345
+(defn to-hundreds [number-list]
+  (let [[mult-list rem-list] (split-with (partial > 100) number-list)
+        mult (apply + mult-list)        ; multiplier of 100
+        rem  (apply + (rest rem-list))] ; modulus of 100
+    (if-not (empty? rem-list)           ; number >= 100
+      (+ (* mult 100) rem)              ; number = multiplier * 100 + modulus
+      mult)                             ; number < 100
+  ))
+
+; Convert a list of numbers literally translated from words, into the number the original text denotes
+; the resulting number is assumed to be: 0 <= n <= the largest number found in vector 'thousands-digits'
+; e.g. "two hundred thousands five hundred twenty one" => [2 100 1000 5 100 20 1] => 200521
+(defn to-number [number-list]
+  (loop [acc 0 xs number-list]
+    (println "acc:" acc "\nnumber-list:" xs)
+    (let [[mult-list rem-list] (split-with not-thousands? xs)
+          mult (to-hundreds mult-list)] ; multiplier of thousand-power is a 3-digit number 
+      (println "mult-list:" mult-list  "\nrem-list:" rem-list "\n")
+      (if (empty? rem-list)            ; if    reached the end of 'number-list'
+        (+ acc mult)                   ; then  return result
+        (-> mult                       ; else  a thousand-power is found eg. 'thousand' or 'million'
+            (* (first rem-list))       ; multiplier * thousand-power
+            (+ acc)                    ; acc + (multiplier * thousand-power)
+            (recur (rest rem-list)))   ; recurse for the rest of numbers after thousand-power
+      ))))
+
+
+      
 
 ; Convert a list of words into a number using map: number-dict
 (defn to-digits [word-list]
