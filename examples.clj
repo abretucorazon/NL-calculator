@@ -11,9 +11,9 @@
 (range  1 5)
 
 (defn factorial
-  "factorial: (apply * (range 1 n))"
+  "factorial: n!"
   [n]  
-  (apply * (range 1 (inc n))))
+  (apply * n (range 1 n)))
 
 (factorial 5)
 
