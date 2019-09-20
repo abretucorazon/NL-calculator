@@ -1,15 +1,21 @@
+(ns examples
+  (:require [clojure.pprint :as pp]
+            [clojure.string :as s]))
+
 (map inc [1 4 5]) 
 
 (reduce + 0 [2 4 5 6])
 
-(apply  + 0 [2 4 5 6])
+(apply  + [2 4 5 6])
 
 (range  1 5)
 
+(defn factorial
+  "factorial: (apply * (range 1 n))"
+  [n]  
+  (apply * (range 1 (inc n))))
 
-(defn factorial "factorial: (apply * (range 1 n))" [n]  (apply * (range 1 n)))
-
-(factorial 0)
+(factorial 5)
 
 (take 5 (repeat "hello"))
 
@@ -32,15 +38,18 @@ lst
 
 ({:cat "meow" :dog "woof"} :dog)
 
-(#{"cat" "dog"} "cat")
+(:dog {:cat "meow" :dog "woof"})
 
-(#{"cat" "dog" } nil)
+(#{"cat" "dog"} "cate")
+
+(contains?  #{"cat" "dog" nil } nil)
 
 (def numbers ["zero" "one" "two" "three" "four" "five" "six" "seven" "eight" "nine"])
-(def tens09  (zipmap numbers (range 0 10)))
+(def tens09  (zipmap numbers (range 0 9)))
 
+tens09
 (def smaller3 (partial > 3))
 (smaller3 1)
 (smaller3 4)
 
-(split-with smaller3 [0 1 2 3 4 5])
+(split-with smaller3 [0 1 2 3 4 5 1])
